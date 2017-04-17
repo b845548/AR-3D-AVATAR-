@@ -76,7 +76,7 @@ if(fgets(buff,100,f)==NULL)
 std::string parse = std::string (buff); 
 std::string answer = parse.substr (14,parse.size()-14); 
 std::string prefix = std::string("((pico2wave -w test.wav \"");
-std::string suffix = std::string("\"; aplay test.wav;echo a > finish.tmp ); exit) &");
+std::string suffix = std::string("\"; aplay test.wav ; echo a > finish.tmp ); exit) &");
 
 system((prefix+answer+suffix).c_str());
 

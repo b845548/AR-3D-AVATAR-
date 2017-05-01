@@ -355,7 +355,15 @@ void GLWindow2::on_key_down(GLWindow&, int k)
     case XK_space:  s="Space"; break;
     case XK_BackSpace:  s="BackSpace"; break;
     case XK_Escape:  s="Escape"; break;
-    default: ;
+    case 65508:  s="Grand"; break;
+    case 65383:  s="Petit"; break;
+    case 65361:  s="Gauche"; break;
+    case 65362:  s="Haut"; break;
+    case 65363:  s="Droit"; break;
+    case 65364:  s="Bas"; break;
+    default: 
+    std::cout<< (int)k<<std::endl;
+    break;
     }
 
   if(s!="")

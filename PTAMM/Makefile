@@ -14,14 +14,29 @@ EXTRA_CFLAGS:= -DENABLE_MODELS_GAME
 
 # Edit the lines below to point to any needed include and link paths
 # Or to change the compiler's optimization flags
+FBXLINKER = -lfbxsdk -lm -lrt -luuid -lstdc++ -lpthread -ldl -lGLU -lGL -lglut -lGLEW -lXmu
 CC = g++
-COMPILEFLAGS = -I -I/usr/local/include -D_LINUX -D_REENTRANT -Wall  -O3 -march=nocona -msse3 -fno-strict-aliasing
-LINKFLAGS = -L MY_CUSTOM_LINK_PATH -lGVars3 -lcvd $(3DSLIB) -lGL -lGLU -L/usr/local/lib -llapack -lblas `pkg-config --libs opencv`
-
+COMPILEFLAGS = -I -I/usr/local/include -D_LINUX -D_REENTRANT -Wall  -O3 -march=nocona -msse3 -fno-strict-aliasing -I./fbx/include -std=c++11
+LINKFLAGS = -L  MY_CUSTOM_LINK_PATH -lGVars3 -lcvd $(3DSLIB) -lGL -lGLU -L/usr/local/lib -llapack -lblas `pkg-config --libs opencv` -L./fbx/lib/gcc4/x64/release $(FBXLINKER) 
 # Edit this line to change video source
 VIDEOSOURCE = VideoSource_Linux_OpenCV.o
 
-OBJECTS=	main.o\
+
+FBXDIR = fbx/
+FBXCODE = $(FBXDIR)Common.o\
+        $(FBXDIR)DrawScene.o\
+	    $(FBXDIR)DrawText.o\
+	    $(FBXDIR)GetPosition.o\
+	    $(FBXDIR)SceneCache.o\
+	    $(FBXDIR)SceneContext.o\
+	    $(FBXDIR)GlFunctions.o\
+	    $(FBXDIR)SetCamera.o\
+	    $(FBXDIR)targa.o\
+
+ALICECODE=AliceScript.o
+OBJECTS=	$(FBXCODE)\
+		$(ALICECODE)\
+        main.o\
 		GLWindow2.o\
 		GLWindowMenu.o\
 		System.o \

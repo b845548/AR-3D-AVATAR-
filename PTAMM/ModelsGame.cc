@@ -6,10 +6,11 @@
 //
 // Author: Robert Castle <bob@robots.ox.ac.uk>, (C) 2009
 //
-#include "ModelsGame.h"
 #include "OpenGL.h"
+#include "ModelsGame.h"
 #include "MapPoint.h"
 #include "Map.h"
+#include "AliceScript.h"
 
 #include <cvd/gl_helpers.h>
 #include <cvd/image_io.h>
@@ -32,6 +33,25 @@ ModelsGame::ModelsGame()
    mData( Name() ),
    mModelControls( mData )
 {
+/// MODIF
+//    if(gSceneContext==NULL){
+//message=(char *)malloc(100*sizeof (char));
+
+    const int DEFAULT_WINDOW_WIDTH = 720;
+    const int DEFAULT_WINDOW_HEIGHT = 486;
+
+	FbxString lFilePath("");
+/*
+	for( int i = 1, c = argc; i < c; ++i )
+	{
+		if( FbxString(argv[i]) == "-test" ) gAutoQuit = true;
+		else if( lFilePath.IsEmpty() ) lFilePath = argv[i];
+	}
+*/
+    gSceneContext = new SceneContext( NULL, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, false);
+//}
+
+/// MODIF
   Reset();
 }
 
@@ -40,7 +60,9 @@ ModelsGame::ModelsGame()
  */
 ModelsGame::~ModelsGame()
 {
-}
+   delete gSceneContext;
+
+}   
 
 
 
@@ -92,8 +114,8 @@ void ModelsGame::Init()
 
  
   mbInitialised = true;
-}
 
+}
 
 
 /**
@@ -102,6 +124,38 @@ void ModelsGame::Init()
  * @param map the current map
  * @param se3CfromW The current camera position
  */
+static float scale=1;
+static std::string buffer;
+static AliceScript as;
+void ModelsGame::HandleKeyPress( std::string sKey )
+{
+    if( sKey == "Enter")
+    {
+        if(as.get_state()!=STATE_INIT)
+            printf("interdit");
+        else
+            as.set_state(STATE_START);
+    }
+    else if( sKey == "BackSpace" )
+    {
+        buffer=buffer.substr(0,buffer.size()-1);
+    }
+    else if( sKey == "Petit" )
+    {
+        scale/=1.3;
+    }
+    else if( sKey == "Grand" )
+    {
+        scale*=1.3;
+    }
+    else if(sKey.size()==1&&strchr("qwertyuioipasdfghjklzxcvbnm",(sKey.c_str())[0]))
+    {
+        buffer+=sKey;//age[strlen(message)]=(sKey.c_str())[0];
+    }
+
+    std::cout<<sKey<<std::endl;
+}
+
 void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
 {
   if( !mbInitialised ) {
@@ -134,9 +188,52 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
 
   glMatrixMode(GL_MODELVIEW);
-  
+    
   glLoadIdentity();
   glMultMatrix(SE3<>());
+
+
+
+    if (gSceneContext->GetStatus() == SceneContext::MUST_BE_LOADED)
+    {
+        gSceneContext->LoadFile();
+        gSceneContext->SetCurrentAnimStack(0);
+
+    }else
+    {
+       gSceneContext->OnTimerClick();
+//       gSceneContext->SetShadingMode(SHADING_MODE_SHADED);
+    }
+    glPushMatrix();
+    glScalef(0.0005*scale,0.0005*scale,0.0005*scale);
+    gSceneContext->OnDisplay();   
+    glPopMatrix();
+//    char * text=(char *)buffer.c_str();
+    if(buffer.size())
+        gSceneContext->setMessage((char *)buffer.c_str());
+  std::cout<<as.get_state();
+    switch(as.get_state()){
+    case STATE_INIT:
+        break;
+    case STATE_START:
+        as.gen_answer(buffer);
+    break;
+    case STATE_MAKING:
+        as.finish_make();
+    break;
+    case STATE_STARTSPEAK:
+        as.gen_speak();
+    break;
+    case STATE_SPEAKING:
+        as.finish_speak();
+    break;
+    default:
+    break;
+    
+}
+
+
+  
 
   // Display the map points?
   if( !mData.mbHidePoints )
@@ -164,11 +261,13 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
     _DrawAxes();
   }
 
+   
 
   // Draw the models
   std::vector<Model3DS*>::const_iterator itr;
   for ( itr = mData.Models().begin(); itr != mData.Models().end(); ++itr )
   {
+//gSceneContext->OnDisplay();
     (*itr)->Draw();
   }
 
@@ -180,10 +279,14 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
     glPushMatrix();
     glMultMatrix( m->Pose() );
     glScaled( m->Diameter(), m->Diameter(), m->Diameter() );
-    _DrawSelectedTarget();
+//   glScalef(0.0001,0.0001,0.0001);
+  //gSceneContext->OnDisplay();
+//    _DrawSelectedTarget();
     glPopMatrix();
   }
   
+   
+
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
 
@@ -209,10 +312,10 @@ void ModelsGame::Draw2D( const GLWindow2 &glWindow, Map &map)
   switch(mData.mDisplayState)
   {
     case ModelsGameData::BrowserState:
-      mModelBrowser.Draw(glWindow);       // draw the model browser
+    //  mModelBrowser.Draw(glWindow);       // draw the model browser
       break;
     case ModelsGameData::ControlState:
-      mModelControls.Draw(glWindow);      // draw the controls
+    //  mModelControls.Draw(glWindow);      // draw the controls
       break;
     case ModelsGameData::HiddenState:     // nothing to draw
     default:

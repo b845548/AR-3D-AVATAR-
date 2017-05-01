@@ -1,6 +1,7 @@
 // Copyright 2008 Isis Innovation Limited
 #ifndef __OPENGL_INCLUDES_H
 #define __OPENGL_INCLUDES_H
+#include <GL/glew.h>
 
 #ifdef _LINUX
 #include <GL/gl.h>

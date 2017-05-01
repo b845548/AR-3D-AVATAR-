@@ -1,0 +1,10 @@
+make distclean
+./configure LIBS="-lm"
+make
+
+
+Makefile
+    LINKER = -lGL -lGLU -L/usr/local/lib -llapack -lblas `pkg-config --libs opencv`
+
+
+

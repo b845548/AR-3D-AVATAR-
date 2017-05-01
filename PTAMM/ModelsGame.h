@@ -16,6 +16,7 @@
 #include "ModelBrowser.h"
 #include "ModelControls.h"
 #include "ModelsGameData.h"
+#include "fbx/SceneContext.h"
 
 #include <cvd/image.h>
 
@@ -42,6 +43,9 @@ class ModelsGame : public Game
     std::string Save(std::string sMapPath);
     void Load(std::string sDataPath);
 
+
+    void HandleKeyPress( std::string sKey );
+
   private:
     Vector<3> _SelectClosestMapPoint(Vector<3> v3RayDirnW);
     bool _HandleModelBrowserActions( Vector<2> v2VidCoords );
@@ -49,8 +53,10 @@ class ModelsGame : public Game
     void _DrawAxes();
     
   private:
+    SceneContext * gSceneContext;
     Map * mpMap;                    // The associated map
     SE3<> mse3CfW;                  // The current camera position
+	//char * message; 
 
     ModelsGameData mData;           // The game data
     ModelBrowser mModelBrowser;     // The model browser

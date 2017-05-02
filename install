@@ -1,3 +1,15 @@
+FBXSDK
+
+
+PTAMM
+sudo apt-get install libblas-dev
+sudo apt-get install liblapack-dev
+sudo apt-get install libgfortran-4.7-dev
+sudo apt-get install libncurses5-dev 
+sudo apt-get install libreadline-dev 
+sudo apt-get install libdc1394-22-dev 
+sudo apt-get install libpng16-dev 
+
 make distclean
 ./configure LIBS="-lm"
 make

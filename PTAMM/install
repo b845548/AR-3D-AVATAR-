@@ -1,8 +1,0 @@
-sudo apt-get install libblas-dev
-sudo apt install liblapack-dev
-sudo apt install libgfortran-4.7-dev
-sudo apt install libncurses5-dev 
-sudo apt install libreadline-dev 
-sudo apt install libdc1394-22-dev 
-sudo apt install libpng16-dev 
-

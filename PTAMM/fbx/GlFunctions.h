@@ -13,9 +13,10 @@ this software in either electronic or hard copy form.
 #define _GL_FUNCTIONS_H
 
 #include <fbxsdk.h>
-//#include "GL/glew.h"
+#include "GL/glew.h"
 
 #include "../OpenGL.h"
+
 #define GLUT_DISABLE_ATEXIT_HACK
 #if defined(__MACH__)
 #include <GLUT/glut.h>

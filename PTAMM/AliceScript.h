@@ -19,6 +19,7 @@ enum{
 
 class AliceScript{
 	int state;
+	std::string mBotName;	
 	std::string mAnswer;
   public:
     AliceScript(void);
@@ -30,6 +31,7 @@ class AliceScript{
     void gen_speak();
     void finish_make(void);
     void finish_speak(void);
-    
+    void set_botName(std::string);
+
 };
 

@@ -25,11 +25,14 @@ namespace PTAMM {
 using namespace CVD;
 using namespace std;
 using namespace GVars3;
+// HBB
+static int flag = 0;
 
 
 System::System()
   : mGLWindow(mVideoSource.Size(), "PTAMM")
 {
+  GUI.RegisterCommand("off", GUICommandCallBack, this);
   GUI.RegisterCommand("exit", GUICommandCallBack, this);
   GUI.RegisterCommand("quit", GUICommandCallBack, this);
 
@@ -53,7 +56,6 @@ System::System()
 
   GUI.RegisterCommand("KeyPress", GUICommandCallBack, this);
 
-  
   mimFrameBW.resize(mVideoSource.Size());
   mimFrameRGB.resize(mVideoSource.Size());
   // First, check if the camera is calibrated.
@@ -128,7 +130,7 @@ System::System()
   GUI.ParseLine("MapViewerMenu.AddMenuButton Root Previous PrevMap Root");
   GUI.ParseLine("MapViewerMenu.AddMenuButton Root Current CurrentMap Root");
 
-
+  
   mbDone = false;
 }
 
@@ -195,7 +197,6 @@ void System::Run()
       
       bool bDrawMap = mpMap->IsGood() && *gvnDrawMap;
       bool bDrawAR = mpMap->IsGood() && *gvnDrawAR;
-      
       mpTracker->TrackFrame(mimFrameBW, !bDrawAR && !bDrawMap);
       
       if(bDrawMap) {
@@ -219,9 +220,12 @@ void System::Run()
       else {
 	sCaption = mpTracker->GetMessageForUser();
       }
-      mGLWindow.DrawCaption(sCaption);
-      mGLWindow.DrawMenus();
-
+//HBB
+      if(!flag)
+      {
+        mGLWindow.DrawCaption(sCaption);
+        mGLWindow.DrawMenus();
+      }
 #ifdef _LINUX      
       if( *mgvnSaveFIFO )
       {
@@ -244,6 +248,15 @@ void System::Run()
  */
 void System::GUICommandCallBack(void *ptr, string sCommand, string sParams)
 {
+
+//HBB
+  if(sCommand=="off") 
+  {
+    flag=!flag;
+    cout<< "off";  
+  }
+
+
   if(sCommand=="quit" || sCommand == "exit") {
     static_cast<System*>(ptr)->mbDone = true;
   }
@@ -306,7 +319,7 @@ void System::GUICommandCallBack(void *ptr, string sCommand, string sParams)
   }
   else if( sCommand == "KeyPress" )
   {
-    if( sParams == "Escape")
+    if(sParams == "Escape")
     {
       GUI.ParseLine("quit");
       return;

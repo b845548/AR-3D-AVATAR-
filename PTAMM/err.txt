@@ -1,0 +1,6 @@
+rm: cannot remove 'finish.tmp': No such file or directory
+rm: cannot remove 'test.wav': No such file or directory
+rm: cannot remove 'result.tmp': No such file or directory
+rm: cannot remove 'finish.tmp': No such file or directory
+rm: cannot remove 'question.tmp': No such file or directory
+! GUI_impl::Loadfile: Failed to load script file "camera.cfg".

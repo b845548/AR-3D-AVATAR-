@@ -1,16 +1,27 @@
 // Copyright 2009 Isis Innovation Limited
 #define GL_GLEXT_PROTOTYPES 1
+#include "System.h"
 #include "ARDriver.h"
 #include "Map.h"
 #include "Games.h"
-
+#include "AliceScript.h"
 #include <cvd/image_io.h>
+#include "fbx/SceneContext.h"
 
 namespace PTAMM {
 
 using namespace GVars3;
 using namespace CVD;
 using namespace std;
+
+static SceneContext * gSceneContext;
+static	AliceScript as;
+static	std::string buffer;
+static float scale=1,thetaX=0.0,thetaY=0.0;
+
+
+
+
 
 static bool CheckFramebufferStatus();
 
@@ -27,7 +38,13 @@ ARDriver::ARDriver(const ATANCamera &cam, ImageRef irFrameSize, GLWindow2 &glw, 
   mirFrameSize = irFrameSize;
   mCamera.SetImageSize(mirFrameSize);
   mbInitialised = false;
-  
+
+    const int DEFAULT_WINDOW_WIDTH = 640;
+    const int DEFAULT_WINDOW_HEIGHT = 480;
+    const bool lSupportVBO = InitializeOpenGL();
+
+	gSceneContext = new SceneContext(NULL, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, true); 
+
 }
 
 
@@ -52,6 +69,14 @@ void ARDriver::Init()
     cerr << "Failed to load searching image " << "\"ARData/Overlays/searching.png\"" << ": " << err.what << endl;
   }  
   
+  try {
+    CVD::img_load(mLogoOverlay, "ARData/Overlays/p8.png");
+  }
+  catch(CVD::Exceptions::All err) {
+    cerr << "Failed to load searching image " << "\"ARData/Overlays/p8.png\"" << ": " << err.what << endl;
+  }  
+
+  GUI.RegisterCommand("chatbot", GUICommandCallBack, this);
 }
 
 
@@ -116,7 +141,56 @@ void ARDriver::Render(Image<Rgb<CVD::byte> > &imFrame, SE3<> se3CfromW, bool bLo
 
     if(mpMap->pGame) {
       mpMap->pGame->Draw3D( mGLWindow, *mpMap, se3CfromW);
+//      mpMap->pGame->state("hello");
     }
+/*
+    static int y=70;
+    if (gSceneContext->GetStatus() == SceneContext::MUST_BE_LOADED)
+    {
+        gSceneContext->LoadFile();
+        gSceneContext->SetCurrentAnimStack(0);
+  
+    }else
+    {    
+
+        static int y=70;
+    switch(as.get_state()){
+            case STATE_INIT:
+                gSceneContext->OnTimerClick(1);
+                break;
+            case STATE_START:
+                gSceneContext->OnTimerClick(1);
+                as.gen_answer(buffer);
+                //buffer="(Speaking...)";
+                break;
+            case STATE_MAKING:
+                gSceneContext->OnTimerClick(1);
+                as.finish_make();
+                break;
+            case STATE_STARTSPEAK:
+                gSceneContext->OnTimerClick(1);
+                as.gen_speak();
+                break;
+            case STATE_SPEAKING:                
+                gSceneContext->OnTimerClick(2);
+                as.finish_speak();
+                buffer="";
+                break;
+            default:
+                break;
+            
+        }
+
+    }
+
+    glPushMatrix();
+    glScalef(0.0005*scale,0.0005*scale,0.0005*scale);
+    gSceneContext->OnDisplay(thetaX,thetaY);   
+    glPopMatrix();
+*/
+//  glDisable(GL_LIGHTING);
+//  glDisable(GL_DEPTH_TEST);
+
   }
 
   glDisable(GL_DEPTH_TEST);
@@ -148,14 +222,59 @@ void ARDriver::Render(Image<Rgb<CVD::byte> > &imFrame, SE3<> se3CfromW, bool bLo
   else
   {
     //draw the lost ar overlays
-    glEnable(GL_BLEND);
-    glRasterPos2i( ( mGLWindow.size().x - mLostOverlay.size().x )/2,
-                   ( mGLWindow.size().y - mLostOverlay.size().y )/2 );
-    glDrawPixels(mLostOverlay);
-    glDisable(GL_BLEND);
   }
+    glEnable(GL_BLEND);
+  //  glRasterPos2i( ( mGLWindow.size().x - mLostOverlay.size().x )/2,
+  //                 ( mGLWindow.size().y - mLostOverlay.size().y )/2 );
+//HBB  
+    glRasterPos2i(0,75);
+    glDrawPixels(mLostOverlay);
 
+    glRasterPos2i(10,10);
+    glDrawPixels(mLogoOverlay);
+    glDisable(GL_BLEND);
+ 
 }
+
+
+
+
+
+void ARDriver::GUICommandCallBack(void* ptr, string sCommand, string sParams)
+{
+  Command c;
+  c.sCommand = sCommand;
+  c.sParams = sParams;
+  ((ARDriver*) ptr)->mvQueuedCommands.push_back(c);
+}
+
+
+/**
+ * This is called in the tracker's own thread.
+ * @param sCommand command string
+ * @param sParams  parameter string
+ */
+void ARDriver::GUICommandHandler(string sCommand, string sParams)  // Called by the callback func..
+{
+  if(sCommand=="chatbot")
+  {
+    return;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -418,11 +537,62 @@ void ARDriver::HandleClick(int nButton, ImageRef irWin )
  * Handle the user pressing a key
  * @param sKey the key the user pressed.
  */
+
 void ARDriver::HandleKeyPress( std::string sKey )
 {
   if(mpMap && mpMap->pGame ) {
     mpMap->pGame->HandleKeyPress( sKey );
   }
+/*
+
+    if( sKey == "Enter")
+    {
+          if(as.get_state()!=STATE_INIT)
+            printf("interdit");
+          else
+            as.set_state(STATE_START);
+          std::cout<<buffer<<std::endl;
+    }
+    else if( sKey == "Space" )
+    {
+        buffer+=" ";
+    }
+    else if( sKey == "BackSpace" )
+    {
+        buffer=buffer.substr(0,buffer.size()-1);
+    }
+    else if(sKey.size()==1
+    &&strchr("1234567890QWWERTYUIOPASDFGHJKLZXCVBNMqwertyuioipasdfghjklzxcvbnm!?.,",(sKey.c_str())[0]))
+    {
+        buffer+=sKey;//age[strlen(message)]=(sKey.c_str())[0];
+        std::cout<<sKey<<std::endl; 
+   }else if( sKey == "Gauche" )
+    {
+        thetaY+=10;
+    }
+    else if( sKey == "Droit" )
+    {
+        thetaY-=10;
+    }
+    else if( sKey == "Haut" )
+    {
+        thetaX+=10;
+    }
+    else if( sKey == "Bas" )
+    {
+        thetaX-=10;
+    }
+    else if( sKey == "Petit" )
+    {
+        scale/=1.3;
+    }
+    else if( sKey == "Grand" )
+    {
+        scale*=1.3;
+    }
+
+*/
+
 
 }
 

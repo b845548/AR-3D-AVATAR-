@@ -317,14 +317,23 @@ namespace
             if (lFileTexture && !lFileTexture->GetUserDataPtr())
             {
                 // Try to load the texture from absolute path
-                const FbxString lFileName = lFileTexture->GetFileName();
+                FbxString lFileName = lFileTexture->GetFileName();
                 
                 // Only TGA textures are supported now.
+
+                if(lFileName.Right(3).Upper()=="JPG");
+               else
                 if (lFileName.Right(3).Upper() != "TGA")
                 {
                     FBXSDK_printf("Only TGA textures are supported now: %s\n", lFileName.Buffer());
                     continue;
                 }
+   
+             if(lFileName.Right(5).Upper()=="N.JPG")
+                	lFileName=FbxString("skin.tga");
+                else if(lFileName.Right(5).Upper()=="2.JPG")
+                    lFileName=FbxString("eye-blue2.tga");
+                
 
                 GLuint lTextureObject = 0;
                 bool lStatus = LoadTextureFromFile(lFileName, lTextureObject);

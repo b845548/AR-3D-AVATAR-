@@ -13,13 +13,12 @@
 #include <TooN/se3.h>
 #include "ATANCamera.h"
 #include "GLWindow2.h"
-#include "GL/glew.h"
-
+//#include "GL/glew.h"
 #include "OpenGL.h"
+
 #include <cvd/image.h>
 #include <cvd/rgb.h>
 #include <cvd/byte.h>
-//#include "fbx/SceneContext.h"
 
 #ifndef NAN
 #include <limits>
@@ -74,7 +73,12 @@ class ARDriver
     bool mbInitialised;
 
 	Image<Rgba<CVD::byte> > mLostOverlay;
+	Image<Rgba<CVD::byte> > mLogoOverlay;
 
+  void GUICommandHandler(std::string sCommand, std::string sParams);
+  static void GUICommandCallBack(void* ptr, std::string sCommand, std::string sParams);
+  struct Command {std::string sCommand; std::string sParams; };
+  std::vector<Command> mvQueuedCommands;
 
 };
 

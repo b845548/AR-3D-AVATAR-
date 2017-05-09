@@ -2,11 +2,15 @@
 
 AliceScript::AliceScript(void){
     state=STATE_INIT;    
+    mBotName="super";
     system("rm test.wav");   
     system("rm result.tmp");   
     system("rm finish.tmp");   
     system("rm question.tmp");   
 
+}
+void AliceScript::set_botName(std::string name){
+    mBotName=name;
 }
 std::string AliceScript::get_answer(void){
     return mAnswer;
@@ -25,7 +29,7 @@ void AliceScript::gen_answer(std::string question){
     f=fopen("question.tmp","w");
     fputs((question+"\nq").c_str(),f);
     fclose(f);
-    std::string script = std::string("(java -cp out/production/Ab Main bot=super action=chat trace=false < question.tmp | grep \"Robot\" > result.tmp; exit ) &");
+    std::string script = std::string("(java -cp out/production/Ab Main bot="+mBotName+" action=chat trace=false < question.tmp | grep \"Robot\" > result.tmp; exit ) &");
     system(script.c_str());   
 
 }

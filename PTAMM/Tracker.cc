@@ -336,13 +336,20 @@ void Tracker::GUICommandHandler(string sCommand, string sParams)  // Called by t
  */
 bool Tracker::HandleKeyPress( string sKey )
 {
+
   // KeyPress commands are issued by GLWindow, and passed to Tracker via System
   if(sKey == "Space")
   {
     mbUserPressedSpacebar = true;
-    return true;
+    return false;
   }
- 
+  else if(sKey == "r")
+  {
+//HBB
+//    Reset();
+    return false;
+  }
+
   return false;
 }
      

@@ -362,7 +362,7 @@ void GLWindow2::on_key_down(GLWindow&, int k)
     case 65363:  s="Droit"; break;
     case 65364:  s="Bas"; break;
     default: 
- //   std::cout<< (int)k<<std::endl;
+  // std::cout<< (int)k<<std::endl;
     break;
     }
 

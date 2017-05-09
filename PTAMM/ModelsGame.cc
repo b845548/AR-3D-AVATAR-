@@ -7,7 +7,7 @@
 // Author: Robert Castle <bob@robots.ox.ac.uk>, (C) 2009
 //
 #include "ModelsGame.h"
-//#include "OpenGL.h"
+#include "OpenGL.h"
 #include "MapPoint.h"
 #include "Map.h"
 
@@ -15,6 +15,7 @@
 #include <cvd/image_io.h>
 #include <gvars3/instances.h>
 #include "AliceScript.h"
+#include "fbx/SceneContext.h"
 
 
 namespace PTAMM {
@@ -24,7 +25,11 @@ using namespace TooN;
 using namespace GVars3;
              
 class Map;
-             
+static SceneContext * gSceneContext;
+static	AliceScript as;
+static	std::string buffer;
+static float scale=1,thetaX=0.0,thetaY=0.0;
+
 /**
  * Constructor
  */
@@ -34,14 +39,11 @@ ModelsGame::ModelsGame()
    mModelControls( mData )
 {
   Reset();
-
-//    const int DEFAULT_WINDOW_WIDTH = 720;
-//    const int DEFAULT_WINDOW_HEIGHT =470;
-    const int DEFAULT_WINDOW_WIDTH = 1300;
-    const int DEFAULT_WINDOW_HEIGHT = 600;
+    const int DEFAULT_WINDOW_WIDTH = 640;
+    const int DEFAULT_WINDOW_HEIGHT = 480;
     const bool lSupportVBO = InitializeOpenGL();
 
-	gSceneContext = new SceneContext(NULL, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, true);
+	gSceneContext = new SceneContext(NULL, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, true); 
 
 }
 
@@ -50,7 +52,6 @@ ModelsGame::ModelsGame()
  */
 ModelsGame::~ModelsGame()
 {
-delete gSceneContext;
 }
 
 
@@ -62,7 +63,6 @@ void ModelsGame::Reset()
 {
   mData.Reset();
 }
-
 
 /**
  * Initialize the game.
@@ -104,8 +104,7 @@ void ModelsGame::Init()
  
   mbInitialised = true;
 }
-
-
+ 
 
 /**
  * Draw the 3D components (the 3DS models)
@@ -113,106 +112,69 @@ void ModelsGame::Init()
  * @param map the current map
  * @param se3CfromW The current camera position
  */
-static	std::string buffer;
-static float scale=1;
-static	AliceScript as;
-static	float thetaX=0.0,thetaY=0.0;
-
-void ModelsGame::HandleKeyPress( std::string sKey )
-{
-    if( sKey == "Enter")
-    {
-          if(as.get_state()!=STATE_INIT)
-            printf("interdit");
-          else
-            as.set_state(STATE_START);
-    }
-    else if( sKey == "BackSpace" )
-    {
-        buffer=buffer.substr(0,buffer.size()-1);
-    }
-    else if( sKey == "Gauche" )
-    {
-        thetaY+=10;
-    }
-    else if( sKey == "Droit" )
-    {
-        thetaY-=10;
-    }
-    else if( sKey == "Haut" )
-    {
-        thetaX+=10;
-    }
-    else if( sKey == "Bas" )
-    {
-        thetaX-=10;
-    }
-    else if( sKey == "Petit" )
-    {
-        scale/=1.3;
-    }
-    else if( sKey == "Grand" )
-    {
-        scale*=1.3;
-    }
-    else if(sKey.size()==1
-    &&strchr("1234567890QWWERTYUIOPASDFGHJKLZXCVBNMqwertyuioipasdfghjklzxcvbnm",(sKey.c_str())[0]))
-    {
-        buffer+=sKey;//age[strlen(message)]=(sKey.c_str())[0];
-    }
-
- //   std::cout<<sKey<<std::endl;
-}
-
 void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
 {
-    if( !mbInitialised ) 
-    {
-        Init();
-    }
-    if( mData.mbHideAR )  
-    {
-        return;
-    }
-    mpMap = &map;
-    mse3CfW = se3CfromW;
-    glColor3f(1.0, 1.0, 0);
-    static int y=70;
+  if( !mbInitialised ) {
+    Init();
+  }
+
+  if( mData.mbHideAR )  {
+    return;
+  }
+
+  mpMap = &map;
+  mse3CfW = se3CfromW;
+  
+  glEnable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LEQUAL);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_NORMALIZE);
+  glEnable(GL_COLOR_MATERIAL);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  
+  GLfloat tmp[]={0.5, 0.5, 0.5, 1.0};
+  glLightfv(GL_LIGHT0, GL_AMBIENT, tmp);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, tmp);
+  GLfloat tmp2[]={1.0, 0.0, 1.0, 0.0};
+  glLightfv(GL_LIGHT0, GL_POSITION, tmp2);
+  GLfloat tmp3[]={1.0, 1.0, 1.0, 1.0};
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmp3);
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50.0);
+
+  glMatrixMode(GL_MODELVIEW);
+  
+  glLoadIdentity();
+  glMultMatrix(SE3<>());
     if (gSceneContext->GetStatus() == SceneContext::MUST_BE_LOADED)
     {
         gSceneContext->LoadFile();
         gSceneContext->SetCurrentAnimStack(0);
   
     }else
-    {
-        gSceneContext->setMessage((char *)("QUESTION : " + buffer).c_str(),0,-y-20);
-        glColor3f(1.0, 0, 0);
-        gSceneContext->setMessage((char *)("REPONSE : "+as.get_answer()).c_str(),0,-y-40);
-        glColor3f(0, 1.0, 0);
-        switch(as.get_state()){
+    {    
+
+
+    switch(as.get_state()){
             case STATE_INIT:
                 gSceneContext->OnTimerClick(1);
-                gSceneContext->setMessage((char *)"ETAT : INIT",0,-y);
                 break;
             case STATE_START:
                 gSceneContext->OnTimerClick(1);
-                gSceneContext->setMessage((char *)"ETAT : START",0,-y);
                 as.gen_answer(buffer);
                 //buffer="(Speaking...)";
                 break;
             case STATE_MAKING:
                 gSceneContext->OnTimerClick(1);
-                gSceneContext->setMessage((char *)"ETAT : MAKE ANSWER",0,-y);
                 as.finish_make();
                 break;
             case STATE_STARTSPEAK:
                 gSceneContext->OnTimerClick(1);
-                gSceneContext->setMessage((char *)"ETAT : MAKE SPEECH",0,-y);
                 as.gen_speak();
                 break;
             case STATE_SPEAKING:                
                 gSceneContext->OnTimerClick(2);
-                gSceneContext->setMessage((char *)"ETAT : SPEAKING",0,-y);
                 as.finish_speak();
                 buffer="";
                 break;
@@ -220,32 +182,18 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
                 break;
             
         }
+
     }
-    
-
-  glEnable(GL_BLEND);
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
-  //glEnable(GL_LIGHTING);
-//  glEnable(GL_LIGHT0);
-  glEnable(GL_NORMALIZE);
-  glEnable(GL_COLOR_MATERIAL);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  
- // GLfloat tmp3[]={3.5, 3.5, 3.5, 3.5};
-//  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, tmp3);
-  //glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.0);
-
-  glMatrixMode(GL_MODELVIEW);
-  
-  glLoadIdentity();
-  glMultMatrix(SE3<>());
 
     glPushMatrix();
     glScalef(0.0005*scale,0.0005*scale,0.0005*scale);
     gSceneContext->OnDisplay(thetaX,thetaY);   
     glPopMatrix();
-/*
+    static int y=400;
+    gSceneContext->setMessage((char *)("QUESTION : " + buffer).c_str(),0,-y-20);
+    gSceneContext->setMessage((char *)("REPONSE : "+as.get_answer()).c_str(),0,-y-40);
+
+
   // Display the map points?
   if( !mData.mbHidePoints )
   {
@@ -265,6 +213,7 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
     }
     glEnd();
   }  
+
 
 
   // Draw the origin axes ?
@@ -291,7 +240,7 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
     _DrawSelectedTarget();
     glPopMatrix();
   }
-  */
+  
   glDisable(GL_LIGHTING);
   glDisable(GL_DEPTH_TEST);
 
@@ -302,6 +251,56 @@ void ModelsGame::Draw3D( const GLWindow2 &glWindow, Map &map, SE3<> se3CfromW)
       glWindow.IsMouseButtonPressed( CVD::GLWindow::BUTTON_LEFT ) ) {
     mModelControls.HandlePressAndHold();
   }
+}
+
+void ModelsGame::HandleKeyPress( std::string sKey )
+{
+   if( sKey == "Enter")
+    {
+          if(as.get_state()!=STATE_INIT)
+            printf("interdit");
+          else
+            as.set_state(STATE_START);
+          std::cout<<buffer<<std::endl;
+    }
+    else if( sKey == "Space" )
+    {
+        buffer+=" ";
+    }
+    else if( sKey == "BackSpace" )
+    {
+        buffer=buffer.substr(0,buffer.size()-1);
+    }
+    else if(sKey.size()==1
+    &&strchr("1234567890QWWERTYUIOPASDFGHJKLZXCVBNMqwertyuioipasdfghjklzxcvbnm!?.,",(sKey.c_str())[0]))
+    {
+        buffer+=sKey;//age[strlen(message)]=(sKey.c_str())[0];
+        std::cout<<sKey<<std::endl; 
+   }else if( sKey == "Gauche" )
+    {
+        thetaY+=10;
+    }
+    else if( sKey == "Droit" )
+    {
+        thetaY-=10;
+    }
+    else if( sKey == "Haut" )
+    {
+        thetaX+=10;
+    }
+    else if( sKey == "Bas" )
+    {
+        thetaX-=10;
+    }
+    else if( sKey == "Petit" )
+    {
+        scale/=1.3;
+    }
+    else if( sKey == "Grand" )
+    {
+        scale*=1.3;
+    }
+//  std::cout<<sKey<<std::endl;
 }
 
 
@@ -317,10 +316,10 @@ void ModelsGame::Draw2D( const GLWindow2 &glWindow, Map &map)
   switch(mData.mDisplayState)
   {
     case ModelsGameData::BrowserState:
-  //    mModelBrowser.Draw(glWindow);       // draw the model browser
+ //     mModelBrowser.Draw(glWindow);       // draw the model browser
       break;
     case ModelsGameData::ControlState:
-  //    mModelControls.Draw(glWindow);      // draw the controls
+   //   mModelControls.Draw(glWindow);      // draw the controls
       break;
     case ModelsGameData::HiddenState:     // nothing to draw
     default:
@@ -341,8 +340,6 @@ void ModelsGame::Draw2D( const GLWindow2 &glWindow, Map &map)
  * @param v2Plane The in-plane location of the click
  * @param nButton The button clicked
  */
-
-
 void ModelsGame::HandleClick(Vector<2> v2VidCoords, Vector<2> v2UFB, Vector<3> v3RayDirnW, Vector<2> v2Plane, int nButton)
 {
   //select appropriate reponse for each overlay

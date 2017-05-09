@@ -28,11 +28,11 @@ namespace
     // Two floats for every UV.
     const int UV_STRIDE = 2;
 
-    const GLfloat DEFAULT_LIGHT_POSITION[] = {-1.0f, 0.0f, 2.0f, 1.0f};
-    const GLfloat DEFAULT_DIRECTION_LIGHT_POSITION[] = {0.0f, 0.0f, -3.0f, 0.0f};
-    const GLfloat DEFAULT_SPOT_LIGHT_DIRECTION[] = {0.0f, 0.0f, 1.0f};
-    const GLfloat DEFAULT_LIGHT_COLOR[] = {0.7f, 0.7f, 0.7f, 0.7f};
-    const GLfloat DEFAULT_LIGHT_SPOT_CUTOFF = 100.0f;
+    const GLfloat DEFAULT_LIGHT_POSITION[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    const GLfloat DEFAULT_DIRECTION_LIGHT_POSITION[] = {0.0f, 0.0f, 1.0f, 0.0f};
+    const GLfloat DEFAULT_SPOT_LIGHT_DIRECTION[] = {0.0f, 0.0f, -1.0f};
+    const GLfloat DEFAULT_LIGHT_COLOR[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    const GLfloat DEFAULT_LIGHT_SPOT_CUTOFF = 180.0f;
 
     // Get specific property value and connected texture if any.
     // Value = Property value * Factor property value (if no factor property, multiply by 1).
